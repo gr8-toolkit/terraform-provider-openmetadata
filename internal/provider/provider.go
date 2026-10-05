@@ -116,6 +116,15 @@ func (p *OpenMetadataProvider) Resources(_ context.Context) []func() resource.Re
 		resources.NewPolicyResource,
 		resources.NewRoleResource,
 		resources.NewDatabaseServiceResource,
+		resources.NewAPIServiceResource,
+		resources.NewMessagingServiceResource,
+		resources.NewDashboardServiceResource,
+		resources.NewPipelineServiceResource,
+		resources.NewMLModelServiceResource,
+		resources.NewStorageServiceResource,
+		resources.NewSearchServiceResource,
+		resources.NewMetadataServiceResource,
+		resources.NewDriveServiceResource,
 		resources.NewDomainResource,
 	}
 }
@@ -130,6 +139,15 @@ func (p *OpenMetadataProvider) DataSources(_ context.Context) []func() datasourc
 		omds.NewPolicyDataSource,
 		omds.NewRoleDataSource,
 		omds.NewDatabaseServiceDataSource,
+		omds.NewAPIServiceDataSource,
+		omds.NewMessagingServiceDataSource,
+		omds.NewDashboardServiceDataSource,
+		omds.NewPipelineServiceDataSource,
+		omds.NewMLModelServiceDataSource,
+		omds.NewStorageServiceDataSource,
+		omds.NewSearchServiceDataSource,
+		omds.NewMetadataServiceDataSource,
+		omds.NewDriveServiceDataSource,
 		omds.NewDomainDataSource,
 	}
 }
