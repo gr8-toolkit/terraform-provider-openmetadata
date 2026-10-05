@@ -5,6 +5,7 @@ package resources
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -92,9 +93,35 @@ func (r *DomainResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	body := r.buildBody(ctx, &plan)
-	raw, err := r.client.CreateOrUpdate(ctx, domainCollection, body)
+	created, err := r.client.CreateOrUpdate(ctx, domainCollection, body)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating domain", err.Error())
+		return
+	}
+
+	// Extract the ID from the PUT response so we can fetch the full entity.
+	// The PUT response may omit expanded relation fields (owners, experts, parent).
+	putData, err := Unmarshal(created)
+	if err != nil {
+		resp.Diagnostics.AddError("Error parsing create response", err.Error())
+		return
+	}
+	id, _ := putData["id"].(string)
+
+	// Re-read via GET to get the complete entity with all fields populated.
+	var raw json.RawMessage
+	if id != "" {
+		raw, err = r.client.GetByID(ctx, domainCollection, id, []string{"owners", "experts", "parent"})
+	} else {
+		raw, err = r.client.GetByName(ctx, domainCollection, plan.Name.ValueString(), []string{"owners", "experts", "parent"})
+	}
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading domain after create", err.Error())
+		return
+	}
+	if raw == nil {
+		resp.Diagnostics.AddError("Domain not found after create",
+			fmt.Sprintf("domain %q was not found immediately after creation", plan.Name.ValueString()))
 		return
 	}
 
@@ -109,7 +136,26 @@ func (r *DomainResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	raw, err := r.client.GetByName(ctx, domainCollection, state.Name.ValueString(), []string{"owners", "experts", "parent"})
+	fields := []string{"owners", "experts", "parent"}
+
+	// Prefer ID-based lookup: more stable than name and avoids FQN vs short-name
+	// mismatches (OM may return FQN "org.DomainName" while state.Name is just
+	// "DomainName", causing GetByName to 404 and silently drop the resource).
+	var (
+		raw json.RawMessage
+		err error
+	)
+	if id := state.ID.ValueString(); id != "" {
+		raw, err = r.client.GetByID(ctx, domainCollection, id, fields)
+	} else {
+		// No ID in state (e.g. post-import edge case) — fall back to FQN then name.
+		key := state.FQN.ValueString()
+		if key == "" {
+			key = state.Name.ValueString()
+		}
+		raw, err = r.client.GetByName(ctx, domainCollection, key, fields)
+	}
+
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading domain", err.Error())
 		return
@@ -131,9 +177,28 @@ func (r *DomainResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 
 	body := r.buildBody(ctx, &plan)
-	raw, err := r.client.CreateOrUpdate(ctx, domainCollection, body)
-	if err != nil {
+	if _, err := r.client.CreateOrUpdate(ctx, domainCollection, body); err != nil {
 		resp.Diagnostics.AddError("Error updating domain", err.Error())
+		return
+	}
+
+	// Re-read by ID so state reflects what OM actually stored.
+	var (
+		raw json.RawMessage
+		err error
+	)
+	if id := plan.ID.ValueString(); id != "" {
+		raw, err = r.client.GetByID(ctx, domainCollection, id, []string{"owners", "experts", "parent"})
+	} else {
+		raw, err = r.client.GetByName(ctx, domainCollection, plan.Name.ValueString(), []string{"owners", "experts", "parent"})
+	}
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading domain after update", err.Error())
+		return
+	}
+	if raw == nil {
+		resp.Diagnostics.AddError("Domain not found after update",
+			fmt.Sprintf("domain %q was not found after update", plan.Name.ValueString()))
 		return
 	}
 

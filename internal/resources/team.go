@@ -6,6 +6,7 @@ package resources
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/gr8-toolkit/terraform-provider-openmetadata/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -22,6 +23,13 @@ var _ resource.Resource = &TeamResource{}
 var _ resource.ResourceWithImportState = &TeamResource{}
 
 const teamCollection = "teams"
+
+// teamUUIDRe matches a standard UUID. Parents can be supplied as either a
+// team name/FQN or a UUID (e.g. openmetadata_team.foo.id); the UUID form is
+// passed through directly without an extra API lookup.
+var teamUUIDRe = regexp.MustCompile(
+	`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`,
+)
 
 type TeamResource struct {
 	client *client.Client
@@ -79,7 +87,10 @@ func (r *TeamResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 				Default:     booldefault.StaticBool(true),
 			},
 			"parents": schema.ListAttribute{
-				Description: "Names or fully qualified names of parent teams. When omitted, OpenMetadata automatically places the team under the root Organisation team; this default is not reflected in state.",
+				Description: "Names, FQNs, or UUIDs of parent teams. " +
+					"UUID references (e.g. openmetadata_team.foo.id) are accepted directly. " +
+					"When omitted, OpenMetadata automatically places the team under the root " +
+					"Organisation team; this default is not reflected in state.",
 				Optional:    true,
 				ElementType: types.StringType,
 			},
@@ -230,18 +241,30 @@ func (r *TeamResource) buildCreateBody(ctx context.Context, plan *TeamResourceMo
 		// The OM CreateTeam schema expects parents as a plain UUID array,
 		// not entity ref objects. Resolve each name to its UUID.
 		uuids := make([]string, 0, len(parentNames))
-		for _, name := range parentNames {
-			raw, err := r.client.GetByName(ctx, teamCollection, name, nil)
+		for _, nameOrID := range parentNames {
+			// If the caller supplied a UUID (e.g. openmetadata_team.foo.id),
+			// use it directly — no lookup required.
+			if teamUUIDRe.MatchString(nameOrID) {
+				uuids = append(uuids, nameOrID)
+				continue
+			}
+			// Otherwise treat the value as a team name and resolve to UUID.
+			raw, err := r.client.GetByName(ctx, teamCollection, nameOrID, nil)
 			if err != nil {
-				return nil, fmt.Errorf("resolving parent team %q: %w", name, err)
+				return nil, fmt.Errorf("resolving parent team %q: %w", nameOrID, err)
+			}
+			if raw == nil {
+				return nil, fmt.Errorf("parent team %q not found: "+
+					"'parents' accepts team names or UUIDs (openmetadata_team.foo.id)",
+					nameOrID)
 			}
 			data, err := Unmarshal(raw)
 			if err != nil {
-				return nil, fmt.Errorf("parsing parent team %q: %w", name, err)
+				return nil, fmt.Errorf("parsing parent team %q: %w", nameOrID, err)
 			}
 			id, _ := data["id"].(string)
 			if id == "" {
-				return nil, fmt.Errorf("parent team %q returned no id", name)
+				return nil, fmt.Errorf("parent team %q returned no id", nameOrID)
 			}
 			uuids = append(uuids, id)
 		}
