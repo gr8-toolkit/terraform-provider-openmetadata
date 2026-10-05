@@ -15,24 +15,24 @@ on:
     branches:
       - main
     paths:
-      - 'internal/**'
-      - 'main.go'
-      - 'go.mod'
-      - 'go.sum'
-      - 'docker/test/**'
-      - 'scripts/testacc.sh'
-      - 'scripts/testacc-all.sh'
-      - '.github/workflows/acceptance.yml'
+      - "internal/**"
+      - "main.go"
+      - "go.mod"
+      - "go.sum"
+      - "docker/test/**"
+      - "scripts/testacc.sh"
+      - "scripts/testacc-all.sh"
+      - ".github/workflows/acceptance.yml"
   pull_request:
     paths:
-      - 'internal/**'
-      - 'main.go'
-      - 'go.mod'
-      - 'go.sum'
-      - 'docker/test/**'
-      - 'scripts/testacc.sh'
-      - 'scripts/testacc-all.sh'
-      - '.github/workflows/acceptance.yml'
+      - "internal/**"
+      - "main.go"
+      - "go.mod"
+      - "go.sum"
+      - "docker/test/**"
+      - "scripts/testacc.sh"
+      - "scripts/testacc-all.sh"
+      - ".github/workflows/acceptance.yml"
   workflow_dispatch:
 
 permissions:

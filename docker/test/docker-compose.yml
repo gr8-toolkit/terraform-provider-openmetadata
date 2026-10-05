@@ -15,7 +15,7 @@ volumes:
   ingestion-volume-dags:
   ingestion-volume-tmp:
   es-data:
-  mysql-data:  # named volume so `docker compose down -v` fully cleans the DB
+  mysql-data: # named volume so `docker compose down -v` fully cleans the DB
 services:
   mysql:
     container_name: openmetadata_mysql
@@ -29,7 +29,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-     - mysql-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
     networks:
       - app_net
     healthcheck:
@@ -67,8 +67,8 @@ services:
       SERVER_PORT: ${SERVER_PORT:-8585}
       SERVER_ADMIN_PORT: ${SERVER_ADMIN_PORT:-8586}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      
-      # Migration 
+
+      # Migration
       MIGRATION_LIMIT_PARAM: ${MIGRATION_LIMIT_PARAM:-1200}
 
       # OpenMetadata Server Authentication Configuration
@@ -185,7 +185,7 @@ services:
       ELASTICSEARCH_SOCKET_TIMEOUT_SECS: ${ELASTICSEARCH_SOCKET_TIMEOUT_SECS:-60}
       ELASTICSEARCH_KEEP_ALIVE_TIMEOUT_SECS: ${ELASTICSEARCH_KEEP_ALIVE_TIMEOUT_SECS:-600}
       ELASTICSEARCH_BATCH_SIZE: ${ELASTICSEARCH_BATCH_SIZE:-100}
-      ELASTICSEARCH_PAYLOAD_BYTES_SIZE: ${ELASTICSEARCH_PAYLOAD_BYTES_SIZE:-10485760}   #max payLoadSize in Bytes
+      ELASTICSEARCH_PAYLOAD_BYTES_SIZE: ${ELASTICSEARCH_PAYLOAD_BYTES_SIZE:-10485760} #max payLoadSize in Bytes
       ELASTICSEARCH_INDEX_MAPPING_LANG: ${ELASTICSEARCH_INDEX_MAPPING_LANG:-EN}
       # AWS IAM Authentication for OpenSearch (auto-enabled when AWS_DEFAULT_REGION is set)
       # Uses standard AWS env vars: https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-envvars.html
@@ -230,7 +230,7 @@ services:
       #email configuration:
       OM_EMAIL_ENTITY: ${OM_EMAIL_ENTITY:-"OpenMetadata"}
       OM_SUPPORT_URL: ${OM_SUPPORT_URL:-"https://slack.open-metadata.org"}
-      AUTHORIZER_ENABLE_SMTP : ${AUTHORIZER_ENABLE_SMTP:-false}
+      AUTHORIZER_ENABLE_SMTP: ${AUTHORIZER_ENABLE_SMTP:-false}
       OPENMETADATA_SERVER_URL: ${OPENMETADATA_SERVER_URL:-""}
       OPENMETADATA_SMTP_SENDER_MAIL: ${OPENMETADATA_SMTP_SENDER_MAIL:-""}
       SMTP_SERVER_ENDPOINT: ${SMTP_SERVER_ENDPOINT:-""}
@@ -257,11 +257,11 @@ services:
       WEB_CONF_FRAME_ORIGIN: ${WEB_CONF_FRAME_ORIGIN:-""}
       #Content Type
       WEB_CONF_CONTENT_TYPE_OPTIONS_ENABLED: ${WEB_CONF_CONTENT_TYPE_OPTIONS_ENABLED:-false}
-      #XSS-Protection  
+      #XSS-Protection
       WEB_CONF_XSS_PROTECTION_ENABLED: ${WEB_CONF_XSS_PROTECTION_ENABLED:-false}
       WEB_CONF_XSS_PROTECTION_ON: ${WEB_CONF_XSS_PROTECTION_ON:-true}
       WEB_CONF_XSS_PROTECTION_BLOCK: ${WEB_CONF_XSS_PROTECTION_BLOCK:-true}
-      #CSP    
+      #CSP
       WEB_CONF_XSS_CSP_ENABLED: ${WEB_CONF_XSS_CSP_ENABLED:-false}
       WEB_CONF_XSS_CSP_POLICY: ${WEB_CONF_XSS_CSP_POLICY:-"default-src 'self'"}
       WEB_CONF_XSS_CSP_REPORT_ONLY_POLICY: ${WEB_CONF_XSS_CSP_REPORT_ONLY_POLICY:-""}
@@ -406,7 +406,7 @@ services:
       ELASTICSEARCH_SOCKET_TIMEOUT_SECS: ${ELASTICSEARCH_SOCKET_TIMEOUT_SECS:-60}
       ELASTICSEARCH_KEEP_ALIVE_TIMEOUT_SECS: ${ELASTICSEARCH_KEEP_ALIVE_TIMEOUT_SECS:-600}
       ELASTICSEARCH_BATCH_SIZE: ${ELASTICSEARCH_BATCH_SIZE:-100}
-      ELASTICSEARCH_PAYLOAD_BYTES_SIZE: ${ELASTICSEARCH_PAYLOAD_BYTES_SIZE:-10485760}   #max payLoadSize in Bytes
+      ELASTICSEARCH_PAYLOAD_BYTES_SIZE: ${ELASTICSEARCH_PAYLOAD_BYTES_SIZE:-10485760} #max payLoadSize in Bytes
       ELASTICSEARCH_INDEX_MAPPING_LANG: ${ELASTICSEARCH_INDEX_MAPPING_LANG:-EN}
       # AWS IAM Authentication for OpenSearch (auto-enabled when AWS_DEFAULT_REGION is set)
       # Uses standard AWS env vars: https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-envvars.html
@@ -442,11 +442,11 @@ services:
       OM_SM_REGION: ${OM_SM_REGION:-""}
       OM_SM_ACCESS_KEY_ID: ${OM_SM_ACCESS_KEY_ID:-""}
       OM_SM_ACCESS_KEY: ${OM_SM_ACCESS_KEY:-""}
-      
+
       #email configuration:
       OM_EMAIL_ENTITY: ${OM_EMAIL_ENTITY:-"OpenMetadata"}
       OM_SUPPORT_URL: ${OM_SUPPORT_URL:-"https://slack.open-metadata.org"}
-      AUTHORIZER_ENABLE_SMTP : ${AUTHORIZER_ENABLE_SMTP:-false}
+      AUTHORIZER_ENABLE_SMTP: ${AUTHORIZER_ENABLE_SMTP:-false}
       OPENMETADATA_SERVER_URL: ${OPENMETADATA_SERVER_URL:-""}
       OPENMETADATA_SMTP_SENDER_MAIL: ${OPENMETADATA_SMTP_SENDER_MAIL:-""}
       SMTP_SERVER_ENDPOINT: ${SMTP_SERVER_ENDPOINT:-""}
@@ -459,7 +459,7 @@ services:
       OPENMETADATA_HEAP_OPTS: ${OPENMETADATA_HEAP_OPTS:--Xmx1G -Xms1G}
       # Mask passwords values in UI
       MASK_PASSWORDS_API: ${MASK_PASSWORDS_API:-false}
-      
+
       #OpenMetadata Web Configuration
       WEB_CONF_URI_PATH: ${WEB_CONF_URI_PATH:-"/api"}
       #HSTS
@@ -473,18 +473,18 @@ services:
       WEB_CONF_FRAME_ORIGIN: ${WEB_CONF_FRAME_ORIGIN:-""}
       #Content Type
       WEB_CONF_CONTENT_TYPE_OPTIONS_ENABLED: ${WEB_CONF_CONTENT_TYPE_OPTIONS_ENABLED:-false}
-      #XSS-Protection  
+      #XSS-Protection
       WEB_CONF_XSS_PROTECTION_ENABLED: ${WEB_CONF_XSS_PROTECTION_ENABLED:-false}
       WEB_CONF_XSS_PROTECTION_ON: ${WEB_CONF_XSS_PROTECTION_ON:-true}
       WEB_CONF_XSS_PROTECTION_BLOCK: ${WEB_CONF_XSS_PROTECTION_BLOCK:-true}
-      #CSP    
+      #CSP
       WEB_CONF_XSS_CSP_ENABLED: ${WEB_CONF_XSS_CSP_ENABLED:-false}
       WEB_CONF_XSS_CSP_POLICY: ${WEB_CONF_XSS_CSP_POLICY:-"default-src 'self'"}
       WEB_CONF_XSS_CSP_REPORT_ONLY_POLICY: ${WEB_CONF_XSS_CSP_REPORT_ONLY_POLICY:-""}
       #Cache
       WEB_CONF_CACHE_CONTROL: ${WEB_CONF_CACHE_CONTROL:-""}
       WEB_CONF_PRAGMA: ${WEB_CONF_PRAGMA:-""}
-    
+
     expose:
       - 8585
       - 8586
@@ -501,7 +501,8 @@ services:
     networks:
       - app_net
     healthcheck:
-      test: [ "CMD", "wget", "-q", "--spider",  "http://localhost:8586/healthcheck" ]
+      test:
+        ["CMD", "wget", "-q", "--spider", "http://localhost:8586/healthcheck"]
 
   ingestion:
     container_name: openmetadata_ingestion
@@ -524,7 +525,7 @@ services:
       DB_USER: ${AIRFLOW_DB_USER:-airflow_user}
       DB_PASSWORD: ${AIRFLOW_DB_PASSWORD:-airflow_pass}
       # extra connection-string properties for the database
-      # EXAMPLE 
+      # EXAMPLE
       # require SSL (only for Postgres)
       # properties: "?sslmode=require"
       DB_PROPERTIES: ${AIRFLOW_DB_PROPERTIES:-}
@@ -546,7 +547,6 @@ services:
       - ingestion-volume-dag-airflow:/opt/airflow/dag_generated_configs
       - ingestion-volume-dags:/opt/airflow/dags
       - ingestion-volume-tmp:/tmp
-
 
 networks:
   app_net:
