@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD041 -->
 <!-- Conventional Commits title, e.g. feat: add openmetadata_data_product -->
 
 ## What changed

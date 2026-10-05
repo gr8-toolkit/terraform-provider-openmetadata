@@ -70,7 +70,9 @@ make deps    # Tidy Go modules
 
 ## Documentation
 
-Provider documentation is generated using [tfplugindocs](https://github.com/hashicorp/terraform-plugin-docs). After making schema changes:
+Provider documentation is generated using
+[tfplugindocs](https://github.com/hashicorp/terraform-plugin-docs).
+After making schema changes:
 
 ```bash
 make docs
@@ -105,7 +107,7 @@ The GitHub Actions workflow builds multi-platform binaries, signs checksums with
 
 ## Architecture
 
-```
+```text
 ├── main.go                          # Provider entry point
 ├── internal/
 │   ├── client/client.go             # HTTP client (auth, CRUD, error handling)
@@ -130,7 +132,8 @@ The GitHub Actions workflow builds multi-platform binaries, signs checksums with
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). To report a vulnerability, see [SECURITY.md](SECURITY.md) — do not open a public issue.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+To report a vulnerability, see [SECURITY.md](SECURITY.md) — do not open a public issue.
 
 ## License
 
