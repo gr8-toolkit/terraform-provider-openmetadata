@@ -1,4 +1,4 @@
-module github.com/Codility/terraform-provider-openmetadata
+module github.com/gr8-toolkit/terraform-provider-openmetadata
 
 go 1.25.8
 

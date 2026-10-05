@@ -7,8 +7,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/Codility/terraform-provider-openmetadata/internal/client"
-	"github.com/Codility/terraform-provider-openmetadata/internal/resources"
+	"github.com/gr8-toolkit/terraform-provider-openmetadata/internal/client"
+	"github.com/gr8-toolkit/terraform-provider-openmetadata/internal/resources"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"

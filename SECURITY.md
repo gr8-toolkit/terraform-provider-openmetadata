@@ -20,7 +20,7 @@ The latest released version only. Fixes ship as a new release rather than a patc
 
 ## Releases
 
-Release checksums are signed with the Codility GPG key published under the `codility` Terraform Registry namespace. Verify a release before use:
+Release checksums are signed with the gr8-toolkit GPG key published under the `gr8-toolkit` Terraform Registry namespace. Verify a release before use:
 
 ```bash
 gpg --verify terraform-provider-openmetadata_<version>_SHA256SUMS.sig \

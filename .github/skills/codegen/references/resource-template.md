@@ -26,7 +26,7 @@ import (
     "github.com/hashicorp/terraform-plugin-framework/resource/schema"
     "github.com/hashicorp/terraform-plugin-framework/types"
     "github.com/hashicorp/terraform-plugin-log/tflog"
-    "github.com/Codility/terraform-provider-openmetadata/internal/client"
+    "github.com/gr8-toolkit/terraform-provider-openmetadata/internal/client"
 )
 
 // Interface compliance

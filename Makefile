@@ -1,5 +1,5 @@
 BINARY_NAME  := terraform-provider-openmetadata
-MODULE       := github.com/Codility/terraform-provider-openmetadata
+MODULE       := github.com/gr8-toolkit/terraform-provider-openmetadata
 VERSION     ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 COMMIT      ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "none")
 LDFLAGS      := -s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT)
@@ -8,7 +8,7 @@ OS           := $(shell go env GOOS 2>/dev/null || echo linux)
 ARCH         := $(shell go env GOARCH 2>/dev/null || echo amd64)
 
 # Terraform plugin directory
-TF_PLUGIN_DIR := $(HOME)/.terraform.d/plugins/registry.terraform.io/codility/openmetadata/$(VERSION)/$(OS)_$(ARCH)
+TF_PLUGIN_DIR := $(HOME)/.terraform.d/plugins/registry.terraform.io/gr8-toolkit/openmetadata/$(VERSION)/$(OS)_$(ARCH)
 
 .PHONY: build install clean fmt lint test testacc testacc-all testacc-external update-test-compose docs codegen deps help
 

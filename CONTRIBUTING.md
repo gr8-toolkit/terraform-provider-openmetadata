@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest. This provider is maintained by Codility and is open to outside contributions.
+Thanks for your interest. This provider is maintained by gr8-toolkit and is open to outside contributions.
 
 ## Before you start
 
@@ -43,4 +43,4 @@ Never edit files under `docs/` — they are generated. Change the example or the
 
 ## Releases
 
-Maintainers only. Tagging `vX.Y.Z` on `main` triggers GoReleaser, which signs the checksums with the Codility GPG key and publishes to the Terraform Registry.
+Maintainers only. Tagging `vX.Y.Z` on `main` triggers GoReleaser, which signs the checksums with the gr8-toolkit GPG key and publishes to the Terraform Registry.

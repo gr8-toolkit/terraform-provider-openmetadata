@@ -22,7 +22,7 @@ Terraform provider for managing [OpenMetadata](https://open-metadata.org/) resou
 terraform {
   required_providers {
     openmetadata = {
-      source  = "codility/openmetadata"
+      source  = "gr8-toolkit/openmetadata"
       version = "~> 0.1"
     }
   }
