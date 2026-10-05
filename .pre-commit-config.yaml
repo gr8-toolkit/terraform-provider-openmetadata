@@ -28,3 +28,6 @@ repos:
         args:
           - --fix
         exclude: ^docs/
+
+default_language_version:
+  golang: "1.25.8"
