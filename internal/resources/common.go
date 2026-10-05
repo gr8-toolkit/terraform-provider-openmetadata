@@ -302,3 +302,26 @@ func splitFQN(fqn string) []string {
 	}
 	return parts
 }
+
+// OwnersListFromRefs converts a []EntityRef to a typed types.List of owner objects.
+// Used by data sources where owners are Computed (read from the API, not write-only).
+// Returns OwnersListNull() when refs is empty.
+func OwnersListFromRefs(refs []EntityRef) types.List {
+	if len(refs) == 0 {
+		return OwnersListNull()
+	}
+	ownerAttrTypes := map[string]attr.Type{
+		"id":   types.StringType,
+		"type": types.StringType,
+	}
+	ownerObjects := make([]attr.Value, len(refs))
+	for i, ref := range refs {
+		obj, _ := types.ObjectValue(ownerAttrTypes, map[string]attr.Value{
+			"id":   types.StringValue(ref.ID),
+			"type": types.StringValue(ref.Type),
+		})
+		ownerObjects[i] = obj
+	}
+	list, _ := types.ListValue(types.ObjectType{AttrTypes: ownerAttrTypes}, ownerObjects)
+	return list
+}
