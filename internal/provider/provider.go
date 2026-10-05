@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/gr8-toolkit/terraform-provider-openmetadata/internal/client"
+	omds "github.com/gr8-toolkit/terraform-provider-openmetadata/internal/datasources"
 	"github.com/gr8-toolkit/terraform-provider-openmetadata/internal/resources"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -120,5 +121,15 @@ func (p *OpenMetadataProvider) Resources(_ context.Context) []func() resource.Re
 }
 
 func (p *OpenMetadataProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{}
+	return []func() datasource.DataSource{
+		omds.NewTeamDataSource,
+		omds.NewClassificationDataSource,
+		omds.NewTagDataSource,
+		omds.NewGlossaryDataSource,
+		omds.NewGlossaryTermDataSource,
+		omds.NewPolicyDataSource,
+		omds.NewRoleDataSource,
+		omds.NewDatabaseServiceDataSource,
+		omds.NewDomainDataSource,
+	}
 }
