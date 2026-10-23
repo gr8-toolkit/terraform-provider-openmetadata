@@ -11,7 +11,7 @@
 # Examples:
 #   ./scripts/testacc.sh                              # default version (from .env)
 #   OM_VERSION=2.0.3 ./scripts/testacc.sh             # specific version
-#   OM_VERSION=1.12.4 ./scripts/testacc.sh -run TestAccClassification
+#   OM_VERSION=2.0.3 ./scripts/testacc.sh -run TestAccClassification
 #
 # To run all supported versions in sequence use scripts/testacc-all.sh (or make testacc-all).
 #

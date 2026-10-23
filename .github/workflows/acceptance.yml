@@ -48,7 +48,6 @@ jobs:
       fail-fast: false
       matrix:
         om_version:
-          - "1.12.4"
           - "2.0.3"
 
     env:

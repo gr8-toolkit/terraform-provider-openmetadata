@@ -71,6 +71,9 @@ make fmt && make lint && make build && make test
 Pre-commit also runs `golangci-lint` on the whole module (e.g. unused helpers in `_test.go` files
 fail it), so lint before committing even if only tests changed.
 
+Only OpenMetadata 2.x is supported (1.x was dropped); the supported versions are listed in
+`docker/test/versions`, and the first line is the default.
+
 Acceptance tests (need Docker or a running OpenMetadata):
 
 ```bash

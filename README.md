@@ -20,6 +20,7 @@ automate your OpenMetadata configuration the same way you manage the rest of you
 | [Terraform](https://developer.hashicorp.com/terraform/downloads) or [OpenTofu](https://opentofu.org/docs/intro/install/) | 1.0 |
 | [Go](https://golang.org/doc/install) | 1.25 (only for building from source) |
 | [Docker + Compose v2](https://docs.docker.com/compose/) | any recent (only for running acceptance tests) |
+| [OpenMetadata](https://open-metadata.org/) server | 2.x (acceptance tested against 2.0.3; 1.x is not supported) |
 
 ## Using the Provider
 
@@ -276,7 +277,7 @@ Acceptance tests require a live OpenMetadata instance. The full stack is managed
 automatically via Docker Compose (~20 min, 8 GB RAM):
 
 ```bash
-# Default version matrix (1.12.4, 2.0.3)
+# Default version (first line of docker/test/versions)
 make testacc
 
 # Specific version
@@ -298,7 +299,6 @@ CI runs the full acceptance suite against these OpenMetadata versions on every p
 
 | Version |
 |---------|
-| 1.12.4  |
 | 2.0.3   |
 
 ## Documentation

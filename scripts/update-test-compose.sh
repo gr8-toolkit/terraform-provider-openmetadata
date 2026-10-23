@@ -11,7 +11,6 @@
 #
 # Examples:
 #   ./scripts/update-test-compose.sh 2.0.3
-#   ./scripts/update-test-compose.sh 1.12.4
 #
 # Run this when upgrading the compose template to pick up structural changes
 # in the official file (new services, changed defaults, etc.).
