@@ -76,6 +76,14 @@ Provider configuration can also come from environment variables:
 | `openmetadata_metadata_service` | Metadata service connections (Atlas, Alation, …) |
 | `openmetadata_drive_service` | Drive service connections (Google Drive, …) |
 
+### Ingestion
+
+| Resource | Description |
+|----------|-------------|
+| `openmetadata_ingestion_pipeline` | Ingestion pipelines / agents (metadata, usage, lineage, profiler, auto classification, data quality, dbt, …) |
+
+The resource manages the pipeline definition only; it does not deploy it to the ingestion runner.
+
 ## Data Sources
 
 Every resource above has a corresponding data source for read-only lookups:
@@ -87,6 +95,7 @@ openmetadata_role              openmetadata_domain            openmetadata_datab
 openmetadata_api_service       openmetadata_messaging_service openmetadata_dashboard_service
 openmetadata_pipeline_service  openmetadata_mlmodel_service   openmetadata_storage_service
 openmetadata_search_service    openmetadata_metadata_service  openmetadata_drive_service
+openmetadata_ingestion_pipeline
 ```
 
 ## Examples
@@ -180,12 +189,29 @@ resource "openmetadata_pipeline_service" "orchestration" {
   name         = "AirflowProd"
   service_type = "Airflow"
 }
+
+# Ingestion — a scheduled metadata pipeline for the warehouse service
+
+resource "openmetadata_ingestion_pipeline" "warehouse_metadata" {
+  name          = "warehouse_metadata"
+  pipeline_type = "metadata"
+  service = {
+    type = "databaseService"
+    name = openmetadata_database_service.warehouse.name
+  }
+  source_config_json = jsonencode({
+    config = { type = "DatabaseMetadata" }
+  })
+  airflow_config = {
+    schedule_interval = "0 * * * *"
+  }
+}
 ```
 
 ## Import
 
 All resources support `terraform import`. Top-level resources use the entity `name`;
-nested resources (tag, glossary_term) use the `fully_qualified_name`.
+nested resources (tag, glossary_term, ingestion_pipeline) use the `fully_qualified_name`.
 
 ```bash
 # Governance
@@ -209,7 +235,13 @@ terraform import openmetadata_storage_service.example    "S3DataLake"
 terraform import openmetadata_search_service.example     "ElasticsearchProd"
 terraform import openmetadata_metadata_service.example   "AtlasProd"
 terraform import openmetadata_drive_service.example      "GDriveProd"
+
+# Ingestion
+terraform import openmetadata_ingestion_pipeline.example "DataWarehouse.warehouse_metadata"
 ```
+
+`source_config_json` on an ingestion pipeline is not read back from the API, so set it in your
+configuration after importing.
 
 ## Building from Source
 
@@ -286,9 +318,9 @@ Per-resource examples live in `examples/resources/openmetadata_<name>/resource.t
 ```text
 internal/
   client/       # Thin net/http wrapper — Bearer auth, CRUD, 30 s timeout
-  datasources/  # Read-only data sources (one file per entity, 18 total)
+  datasources/  # Read-only data sources (one file per entity, 19 total)
   provider/     # Provider config + acceptance tests (one test file per resource)
-  resources/    # Managed resources (one file per entity, 18 total)
+  resources/    # Managed resources (one file per entity, 19 total)
 examples/       # HCL usage examples consumed by tfplugindocs
 docs/           # Auto-generated documentation — do not edit
 docker/test/    # Docker Compose stack for acceptance tests
