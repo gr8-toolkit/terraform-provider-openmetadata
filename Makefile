@@ -65,14 +65,6 @@ update-test-compose:
 docs:
 	go generate ./...
 
-## Generate a resource — use the AI codegen skill instead of this target.
-## See: .github/skills/codegen/SKILL.md
-codegen:
-	@echo "Resource generation is now handled by the AI codegen skill."
-	@echo "See: .github/skills/codegen/SKILL.md"
-	@echo ""
-	@echo "Ask your AI agent: 'Generate a TF resource for <entity>'"
-
 ## Resolve Go module dependencies
 deps:
 	go mod tidy

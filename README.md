@@ -20,6 +20,7 @@ automate your OpenMetadata configuration the same way you manage the rest of you
 | [Terraform](https://developer.hashicorp.com/terraform/downloads) or [OpenTofu](https://opentofu.org/docs/intro/install/) | 1.0 |
 | [Go](https://golang.org/doc/install) | 1.25 (only for building from source) |
 | [Docker + Compose v2](https://docs.docker.com/compose/) | any recent (only for running acceptance tests) |
+| [OpenMetadata](https://open-metadata.org/) server | 2.x (acceptance tested against 2.0.3; 1.x is not supported) |
 
 ## Using the Provider
 
@@ -76,6 +77,14 @@ Provider configuration can also come from environment variables:
 | `openmetadata_metadata_service` | Metadata service connections (Atlas, Alation, …) |
 | `openmetadata_drive_service` | Drive service connections (Google Drive, …) |
 
+### Ingestion
+
+| Resource | Description |
+|----------|-------------|
+| `openmetadata_ingestion_pipeline` | Ingestion pipelines / agents (metadata, usage, lineage, profiler, auto classification, data quality, dbt, …) |
+
+The resource manages the pipeline definition only; it does not deploy it to the ingestion runner.
+
 ## Data Sources
 
 Every resource above has a corresponding data source for read-only lookups:
@@ -87,6 +96,7 @@ openmetadata_role              openmetadata_domain            openmetadata_datab
 openmetadata_api_service       openmetadata_messaging_service openmetadata_dashboard_service
 openmetadata_pipeline_service  openmetadata_mlmodel_service   openmetadata_storage_service
 openmetadata_search_service    openmetadata_metadata_service  openmetadata_drive_service
+openmetadata_ingestion_pipeline
 ```
 
 ## Examples
@@ -180,12 +190,29 @@ resource "openmetadata_pipeline_service" "orchestration" {
   name         = "AirflowProd"
   service_type = "Airflow"
 }
+
+# Ingestion — a scheduled metadata pipeline for the warehouse service
+
+resource "openmetadata_ingestion_pipeline" "warehouse_metadata" {
+  name          = "warehouse_metadata"
+  pipeline_type = "metadata"
+  service = {
+    type = "databaseService"
+    name = openmetadata_database_service.warehouse.name
+  }
+  source_config_json = jsonencode({
+    config = { type = "DatabaseMetadata" }
+  })
+  airflow_config = {
+    schedule_interval = "0 * * * *"
+  }
+}
 ```
 
 ## Import
 
 All resources support `terraform import`. Top-level resources use the entity `name`;
-nested resources (tag, glossary_term) use the `fully_qualified_name`.
+nested resources (tag, glossary_term, ingestion_pipeline) use the `fully_qualified_name`.
 
 ```bash
 # Governance
@@ -209,7 +236,13 @@ terraform import openmetadata_storage_service.example    "S3DataLake"
 terraform import openmetadata_search_service.example     "ElasticsearchProd"
 terraform import openmetadata_metadata_service.example   "AtlasProd"
 terraform import openmetadata_drive_service.example      "GDriveProd"
+
+# Ingestion
+terraform import openmetadata_ingestion_pipeline.example "DataWarehouse.warehouse_metadata"
 ```
+
+`source_config_json` on an ingestion pipeline is not read back from the API, so set it in your
+configuration after importing.
 
 ## Building from Source
 
@@ -244,7 +277,7 @@ Acceptance tests require a live OpenMetadata instance. The full stack is managed
 automatically via Docker Compose (~20 min, 8 GB RAM):
 
 ```bash
-# Default version matrix (1.12.4, 2.0.3)
+# Default version (first line of docker/test/versions)
 make testacc
 
 # Specific version
@@ -266,7 +299,6 @@ CI runs the full acceptance suite against these OpenMetadata versions on every p
 
 | Version |
 |---------|
-| 1.12.4  |
 | 2.0.3   |
 
 ## Documentation
@@ -286,9 +318,9 @@ Per-resource examples live in `examples/resources/openmetadata_<name>/resource.t
 ```text
 internal/
   client/       # Thin net/http wrapper — Bearer auth, CRUD, 30 s timeout
-  datasources/  # Read-only data sources (one file per entity, 18 total)
+  datasources/  # Read-only data sources (one file per entity, 19 total)
   provider/     # Provider config + acceptance tests (one test file per resource)
-  resources/    # Managed resources (one file per entity, 18 total)
+  resources/    # Managed resources (one file per entity, 19 total)
 examples/       # HCL usage examples consumed by tfplugindocs
 docs/           # Auto-generated documentation — do not edit
 docker/test/    # Docker Compose stack for acceptance tests

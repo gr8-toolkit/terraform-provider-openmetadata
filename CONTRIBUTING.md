@@ -38,6 +38,20 @@ make testacc-external
 
 Never edit files under `docs/` — they are generated. Change the example or the schema description instead.
 
+### Using the codegen skill with Claude Code
+
+Claude Code only discovers project skills under `.claude/skills/`, but `.claude/` is gitignored (it holds
+local, per-developer config), so the codegen skill is not picked up automatically. To make it available
+as `/codegen`, symlink it into your local checkout once:
+
+```bash
+mkdir -p .claude/skills
+ln -sfn ../../.github/skills/codegen .claude/skills/codegen
+```
+
+The symlink stays local and is never committed. Without it, you can still ask Claude to follow
+`.github/skills/codegen/SKILL.md`, which `CLAUDE.md` points to.
+
 ## Pull requests
 
 - Branch from `main`; fork if you are outside the org.

@@ -192,6 +192,17 @@ func BoolVal(data map[string]interface{}, key string) types.Bool {
 	return types.BoolNull()
 }
 
+// Int64Val safely extracts an integer from a JSON object field.
+// JSON numbers decode to float64, so the value is truncated to int64.
+func Int64Val(data map[string]interface{}, key string) types.Int64 {
+	if v, ok := data[key]; ok && v != nil {
+		if f, ok := v.(float64); ok {
+			return types.Int64Value(int64(f))
+		}
+	}
+	return types.Int64Null()
+}
+
 // RawStringList extracts a plain JSON array of strings (e.g., synonyms).
 func RawStringList(data map[string]interface{}, key string) []string {
 	if v, ok := data[key]; ok && v != nil {
