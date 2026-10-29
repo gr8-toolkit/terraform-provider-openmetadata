@@ -7,4 +7,4 @@
 #   3. Copy docker/test/<existing>/.env to docker/test/<version>/.env and update
 #      OPENMETADATA_VERSION.
 #   4. Commit docker/test/<version>/.env and docker/test/<version>/docker-compose.yml.
-2.0.3
+2.0.7
