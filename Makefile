@@ -37,7 +37,7 @@ test:
 ## Run acceptance tests against a local docker-compose OpenMetadata stack.
 ## Uses the default version from docker/test/.env, or override with OM_VERSION:
 ##   make testacc
-##   make testacc OM_VERSION=2.0.3
+##   make testacc OM_VERSION=2.0.7
 testacc:
 	@OM_VERSION="$(OM_VERSION)" bash scripts/testacc.sh
 
@@ -57,7 +57,7 @@ testacc-external:
 ## Re-download and re-parameterize the official OpenMetadata docker-compose.yml.
 ## Pass OM_VERSION to fetch a specific release (defaults to the version in .env):
 ##   make update-test-compose
-##   make update-test-compose OM_VERSION=2.0.3
+##   make update-test-compose OM_VERSION=2.0.7
 update-test-compose:
 	@bash scripts/update-test-compose.sh $(OM_VERSION)
 

@@ -16,7 +16,7 @@ import (
 )
 
 // fakeOM is a minimal in-memory stand-in for the parts of the OpenMetadata
-// REST API used by the ingestion pipeline resource and data source. It lets the
+// REST API used by the ingestion pipeline and data asset resources and data sources. It lets the
 // full Terraform plan/apply/import/destroy cycle run without a live OM stack,
 // so provider-side bugs such as "inconsistent result after apply" are caught by
 // `make test`. It mimics the server behaviour that matters here: UUID
@@ -36,6 +36,9 @@ type fakeOM struct {
 
 	puts    []map[string]interface{} // decoded PUT bodies for pipelines, in order
 	deletes []string                 // ids of deleted pipelines
+
+	assets  map[string]map[string]interface{} // "<collection>/<fqn>" -> data asset entity
+	patches [][]interface{}                   // decoded JSON Patch bodies for data assets, in order
 }
 
 // newFakeOM starts the fake server and registers its shutdown with t.Cleanup.
@@ -52,6 +55,7 @@ func newFakeOM(t *testing.T) *fakeOM {
 		t:         t,
 		services:  map[string]map[string]interface{}{},
 		pipelines: map[string]map[string]interface{}{},
+		assets:    map[string]map[string]interface{}{},
 	}
 	f.server = httptest.NewServer(http.HandlerFunc(f.handle))
 	t.Cleanup(f.server.Close)
@@ -127,6 +131,9 @@ func (f *fakeOM) handle(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodGet && path == "system/version":
 		writeJSON(w, http.StatusOK, map[string]string{"version": "fake"})
+
+	case f.isAssetRoute(path):
+		f.handleAsset(w, r, path)
 
 	case path == "services/ingestionPipelines" && r.Method == http.MethodPut:
 		f.putPipeline(w, r)

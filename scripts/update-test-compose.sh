@@ -10,7 +10,7 @@
 #   ./scripts/update-test-compose.sh           # uses OPENMETADATA_VERSION from .env
 #
 # Examples:
-#   ./scripts/update-test-compose.sh 2.0.3
+#   ./scripts/update-test-compose.sh 2.0.7
 #
 # Run this when upgrading the compose template to pick up structural changes
 # in the official file (new services, changed defaults, etc.).
@@ -40,7 +40,7 @@ fi
 
 if [ -z "${VERSION}" ]; then
   echo "ERROR: version not specified. Pass it as an argument or set OPENMETADATA_VERSION."
-  echo "Usage: $0 <version>   e.g. $0 2.0.3"
+  echo "Usage: $0 <version>   e.g. $0 2.0.7"
   exit 1
 fi
 

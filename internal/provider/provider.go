@@ -127,6 +127,7 @@ func (p *OpenMetadataProvider) Resources(_ context.Context) []func() resource.Re
 		resources.NewDriveServiceResource,
 		resources.NewDomainResource,
 		resources.NewIngestionPipelineResource,
+		resources.NewDataAssetResource,
 	}
 }
 
@@ -151,5 +152,6 @@ func (p *OpenMetadataProvider) DataSources(_ context.Context) []func() datasourc
 		omds.NewDriveServiceDataSource,
 		omds.NewDomainDataSource,
 		omds.NewIngestionPipelineDataSource,
+		omds.NewDataAssetDataSource,
 	}
 }

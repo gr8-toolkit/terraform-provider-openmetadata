@@ -20,7 +20,7 @@ automate your OpenMetadata configuration the same way you manage the rest of you
 | [Terraform](https://developer.hashicorp.com/terraform/downloads) or [OpenTofu](https://opentofu.org/docs/intro/install/) | 1.0 |
 | [Go](https://golang.org/doc/install) | 1.25 (only for building from source) |
 | [Docker + Compose v2](https://docs.docker.com/compose/) | any recent (only for running acceptance tests) |
-| [OpenMetadata](https://open-metadata.org/) server | 2.x (acceptance tested against 2.0.3; 1.x is not supported) |
+| [OpenMetadata](https://open-metadata.org/) server | 2.x (acceptance tested against 2.0.7; 1.x is not supported) |
 
 ## Using the Provider
 
@@ -85,6 +85,29 @@ Provider configuration can also come from environment variables:
 
 The resource manages the pipeline definition only; it does not deploy it to the ingestion runner.
 
+### Data assets
+
+| Resource | Description |
+|----------|-------------|
+| `openmetadata_data_asset` | Metadata of an asset created by ingestion — table, topic, dashboard, container, … (`type` + `fully_qualified_name`) |
+
+The resource never creates the asset. It adopts one that already exists (run the ingestion pipeline
+first) and manages only the attributes you set — `display_name`, `description`, `owners`, `domains`,
+`tags`, `glossary_terms` and custom properties (`extension_json`). Attributes you leave out keep their
+ingested value, and `terraform destroy` removes the resource from state without deleting the asset.
+Supported types: `api_collection`, `api_endpoint`, `chart`, `container`, `dashboard`,
+`dashboard_data_model`, `database`, `database_schema`, `ml_model`, `pipeline`, `search_index`,
+`stored_procedure`, `table`, `topic`.
+
+```hcl
+resource "openmetadata_data_asset" "orders" {
+  type                 = "table"
+  fully_qualified_name = "warehouse.analytics.public.orders"
+  description          = "One row per customer order."
+  tags                 = ["PII.Sensitive"]
+}
+```
+
 ## Data Sources
 
 Every resource above has a corresponding data source for read-only lookups:
@@ -96,7 +119,7 @@ openmetadata_role              openmetadata_domain            openmetadata_datab
 openmetadata_api_service       openmetadata_messaging_service openmetadata_dashboard_service
 openmetadata_pipeline_service  openmetadata_mlmodel_service   openmetadata_storage_service
 openmetadata_search_service    openmetadata_metadata_service  openmetadata_drive_service
-openmetadata_ingestion_pipeline
+openmetadata_ingestion_pipeline openmetadata_data_asset
 ```
 
 ## Examples
@@ -212,7 +235,8 @@ resource "openmetadata_ingestion_pipeline" "warehouse_metadata" {
 ## Import
 
 All resources support `terraform import`. Top-level resources use the entity `name`;
-nested resources (tag, glossary_term, ingestion_pipeline) use the `fully_qualified_name`.
+nested resources (tag, glossary_term, ingestion_pipeline) use the `fully_qualified_name`;
+`openmetadata_data_asset` uses `<type>:<fully_qualified_name>`.
 
 ```bash
 # Governance
@@ -239,6 +263,9 @@ terraform import openmetadata_drive_service.example      "GDriveProd"
 
 # Ingestion
 terraform import openmetadata_ingestion_pipeline.example "DataWarehouse.warehouse_metadata"
+
+# Data assets — "<type>:<fully_qualified_name>"
+terraform import openmetadata_data_asset.example "table:warehouse.analytics.public.orders"
 ```
 
 `source_config_json` on an ingestion pipeline is not read back from the API, so set it in your
@@ -281,7 +308,7 @@ automatically via Docker Compose (~20 min, 8 GB RAM):
 make testacc
 
 # Specific version
-make testacc OM_VERSION=2.0.3
+make testacc OM_VERSION=2.0.7
 
 # All versions in docker/test/versions (CI matrix)
 make testacc-all
@@ -299,7 +326,7 @@ CI runs the full acceptance suite against these OpenMetadata versions on every p
 
 | Version |
 |---------|
-| 2.0.3   |
+| 2.0.7   |
 
 ## Documentation
 

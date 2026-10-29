@@ -78,7 +78,7 @@ Acceptance tests (need Docker or a running OpenMetadata):
 
 ```bash
 make testacc                      # docker-compose lifecycle, ~20 min, 8 GB RAM
-make testacc OM_VERSION=2.0.3     # a specific OM version
+make testacc OM_VERSION=2.0.7     # a specific OM version
 make testacc-all                  # every version in docker/test/versions
 export OPENMETADATA_HOST=http://localhost:8585 OPENMETADATA_TOKEN=<jwt-admin-token>
 make testacc-external             # against an instance you already run
