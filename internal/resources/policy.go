@@ -226,7 +226,7 @@ func (r *PolicyResource) readIntoState(raw []byte, state *PolicyResourceModel) {
 	state.ID = StringVal(data, "id")
 	state.Name = StringVal(data, "name")
 	state.DisplayName = StringVal(data, "displayName")
-	state.Description = StringVal(data, "description")
+	state.Description = DescriptionVal(data, state.Description)
 	// rules is intentionally NOT read back from the API response. The API may
 	// reorder JSON fields, producing a string that differs from what the user
 	// wrote. Treating rules as write-only (like connection_json in database

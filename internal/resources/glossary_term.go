@@ -246,7 +246,7 @@ func (r *GlossaryTermResource) readIntoState(raw []byte, state *GlossaryTermReso
 	state.ID = StringVal(data, "id")
 	state.Name = StringVal(data, "name")
 	state.DisplayName = StringVal(data, "displayName")
-	state.Description = StringVal(data, "description")
+	state.Description = DescriptionVal(data, state.Description)
 	state.MutuallyExclusive = BoolVal(data, "mutuallyExclusive")
 	state.FQN = StringVal(data, "fullyQualifiedName")
 

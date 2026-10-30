@@ -126,11 +126,22 @@ if err != nil {
 state.ID = StringVal(data, "id")
 state.Name = StringVal(data, "name")
 state.DisplayName = StringVal(data, "displayName")
-state.Description = StringVal(data, "description")
+state.Description = DescriptionVal(data, state.Description) // never plain StringVal, see below
 state.FQN = StringVal(data, "fullyQualifiedName")
 state.Domains = StringListVal(data, "domains")
 state.Owners = OwnersListNull() // owners are never read back from the API
 ```
+
+## Server-side rewrites of description / displayName
+
+OM does not always store what was sent, and Terraform fails with "inconsistent result after apply"
+when the applied value differs from the plan:
+
+- Descriptions containing `<` go through an HTML sanitizer (`<env>` is dropped, `&` becomes `&amp;`).
+  `DescriptionVal(data, state.Description)` keeps the planned/prior value when `client.EquivalentText`
+  says OM only sanitized it. Data sources read fresh state and use plain `StringVal`.
+- A bot token's PUT silently keeps a non-empty description and displayName. `client.CreateOrUpdate`
+  re-applies the description with a PATCH, and returns an error for displayName (bots may not edit it).
 
 ## Write-only fields
 

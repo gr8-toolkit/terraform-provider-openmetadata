@@ -116,3 +116,11 @@ provider "openmetadata" {
 }
 `, os.Getenv("OPENMETADATA_HOST"), auth.Config.JWTToken)
 }
+
+// OM runs descriptions containing `<` through an HTML sanitizer: unknown tags
+// such as <env> are dropped and `&` becomes `&amp;`, so the stored text differs
+// from the configured one. Resources must keep the configured value in state.
+const (
+	testSanitizedDescription        = "Members come from the LDAP group om-<env>-consumers & <b>friends</b>"
+	testSanitizedDescriptionUpdated = "Members come from the LDAP group om-<env>-viewers & <i>friends</i> <script>x</script>"
+)

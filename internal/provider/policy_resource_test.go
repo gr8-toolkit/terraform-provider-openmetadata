@@ -102,3 +102,25 @@ resource "openmetadata_policy" "test" {
 }
 `, providerBlock, name, description, rules)
 }
+
+// TestAccPolicyResourceSanitizedDescription covers descriptions that OM rewrites
+// while storing them (unknown HTML tags are dropped, `&` is escaped): state must
+// keep the configured text instead of failing with "inconsistent result after apply".
+func TestAccPolicyResourceSanitizedDescription(t *testing.T) {
+	name := testRandName("polsan")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPolicyConfig(name, testSanitizedDescription),
+				Check:  resource.TestCheckResourceAttr("openmetadata_policy.test", "description", testSanitizedDescription),
+			},
+			{
+				Config: testAccPolicyConfig(name, testSanitizedDescriptionUpdated),
+				Check:  resource.TestCheckResourceAttr("openmetadata_policy.test", "description", testSanitizedDescriptionUpdated),
+			},
+		},
+	})
+}

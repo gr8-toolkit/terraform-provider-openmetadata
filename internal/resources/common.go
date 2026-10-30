@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/gr8-toolkit/terraform-provider-openmetadata/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -335,4 +336,19 @@ func OwnersListFromRefs(refs []EntityRef) types.List {
 	}
 	list, _ := types.ListValue(types.ObjectType{AttrTypes: ownerAttrTypes}, ownerObjects)
 	return list
+}
+
+// DescriptionVal returns the description from an API response. When prior (the
+// planned or previously stored value) is known and OM only sanitized it (see
+// client.EquivalentText), prior is kept, as Terraform requires the applied value
+// to equal the planned one.
+func DescriptionVal(data map[string]interface{}, prior types.String) types.String {
+	got := StringVal(data, "description")
+	if prior.IsNull() || prior.IsUnknown() || got.IsNull() {
+		return got
+	}
+	if client.EquivalentText(prior.ValueString(), got.ValueString()) {
+		return prior
+	}
+	return got
 }

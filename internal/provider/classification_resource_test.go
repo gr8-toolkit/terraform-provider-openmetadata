@@ -65,3 +65,25 @@ resource "openmetadata_classification" "test" {
 }
 `, testProviderBlock(), name, description, mutuallyExclusive)
 }
+
+// TestAccClassificationResourceSanitizedDescription covers descriptions that OM rewrites
+// while storing them (unknown HTML tags are dropped, `&` is escaped): state must
+// keep the configured text instead of failing with "inconsistent result after apply".
+func TestAccClassificationResourceSanitizedDescription(t *testing.T) {
+	name := testRandName("clasan")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccClassificationConfig(name, testSanitizedDescription, false),
+				Check:  resource.TestCheckResourceAttr("openmetadata_classification.test", "description", testSanitizedDescription),
+			},
+			{
+				Config: testAccClassificationConfig(name, testSanitizedDescriptionUpdated, false),
+				Check:  resource.TestCheckResourceAttr("openmetadata_classification.test", "description", testSanitizedDescriptionUpdated),
+			},
+		},
+	})
+}
