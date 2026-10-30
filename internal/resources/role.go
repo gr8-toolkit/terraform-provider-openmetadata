@@ -190,7 +190,7 @@ func (r *RoleResource) readIntoState(raw []byte, state *RoleResourceModel) {
 	state.ID = StringVal(data, "id")
 	state.Name = StringVal(data, "name")
 	state.DisplayName = StringVal(data, "displayName")
-	state.Description = StringVal(data, "description")
+	state.Description = DescriptionVal(data, state.Description)
 	state.Policies = StringListVal(data, "policies")
 	state.Domains = StringListVal(data, "domains")
 	state.FQN = StringVal(data, "fullyQualifiedName")

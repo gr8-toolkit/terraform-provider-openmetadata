@@ -263,7 +263,7 @@ func (r *DomainResource) readIntoState(raw []byte, state *DomainResourceModel) {
 	state.ID = StringVal(data, "id")
 	state.Name = StringVal(data, "name")
 	state.DisplayName = StringVal(data, "displayName")
-	state.Description = StringVal(data, "description")
+	state.Description = DescriptionVal(data, state.Description)
 	state.DomainType = StringVal(data, "domainType")
 	state.FQN = StringVal(data, "fullyQualifiedName")
 

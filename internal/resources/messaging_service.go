@@ -194,7 +194,7 @@ func (r *MessagingServiceResource) readIntoState(raw []byte, state *MessagingSer
 	state.ID = StringVal(data, "id")
 	state.Name = StringVal(data, "name")
 	state.DisplayName = StringVal(data, "displayName")
-	state.Description = StringVal(data, "description")
+	state.Description = DescriptionVal(data, state.Description)
 	state.ServiceType = StringVal(data, "serviceType")
 	state.FQN = StringVal(data, "fullyQualifiedName")
 	state.Domains = StringListVal(data, "domains")

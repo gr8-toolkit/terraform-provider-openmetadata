@@ -12,9 +12,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -109,17 +111,43 @@ func (c *Client) doRequestWithContentType(ctx context.Context, method, path, con
 	return respBody, resp.StatusCode, nil
 }
 
-// botProtectedFields maps request body keys to JSON Patch paths for fields that
-// OM refuses to overwrite on PUT when the caller is a bot and the stored value is
-// non-empty. PUT then silently returns the old value, so they are re-applied with
-// a PATCH, which is not subject to that rule.
-var botProtectedFields = []string{"description", "displayName"}
+var (
+	// htmlBlocks are elements whose content OM's sanitizer drops along with the tag.
+	htmlBlocks = regexp.MustCompile(`(?is)<(script|style|iframe)\b.*?</(script|style|iframe)\s*>|<!--.*?-->`)
+	// htmlTags matches anything the sanitizer may treat as a tag. A `<` that is
+	// not followed by a letter or `/` is plain text, which OM escapes to `&lt;`.
+	htmlTags = regexp.MustCompile(`</?[A-Za-z][^>]*>`)
+)
+
+// EquivalentText reports whether got is what OM stores for a description sent as
+// want. OM runs descriptions containing `<` through an HTML sanitizer: unknown
+// tags such as `<env>` are dropped, attributes are filtered, and stray `<`, `>`
+// and `&` become entities. The result cannot be predicted exactly, so both sides
+// are compared by their text content. Text without `<` is never rewritten and
+// must match exactly.
+func EquivalentText(want, got string) bool {
+	if want == got {
+		return true
+	}
+	if !strings.Contains(want, "<") {
+		return false
+	}
+	return textContent(want) == textContent(got)
+}
+
+func textContent(s string) string {
+	s = htmlBlocks.ReplaceAllString(s, "")
+	s = htmlTags.ReplaceAllString(s, "")
+	return strings.Join(strings.Fields(html.UnescapeString(s)), " ")
+}
 
 // CreateOrUpdate performs an idempotent PUT (OM's create_or_update pattern).
 //
-// If the response does not echo back a description or displayName that was sent
-// (OM ignores those changes on PUT for bot tokens), the values are applied with a
-// JSON Patch and the patched entity is returned.
+// OM ignores description and displayName changes on PUT when the token belongs
+// to a bot and the stored value is non-empty, returning the old value instead.
+// A bot may still PATCH the description, so that is applied as a fallback and
+// the patched entity is returned. Bots are not allowed to edit display names at
+// all, which is reported as an error rather than as an inconsistent result.
 func (c *Client) CreateOrUpdate(ctx context.Context, collection string, body interface{}) (json.RawMessage, error) {
 	respBody, _, err := c.doRequest(ctx, http.MethodPut, collection, body)
 	if err != nil {
@@ -140,21 +168,25 @@ func (c *Client) CreateOrUpdate(ctx context.Context, collection string, body int
 		return raw, nil
 	}
 
-	var ops []map[string]interface{}
-	for _, field := range botProtectedFields {
-		want, ok := sent[field].(string)
-		if !ok {
-			continue
-		}
-		if have, _ := got[field].(string); have != want {
-			ops = append(ops, map[string]interface{}{"op": "add", "path": "/" + field, "value": want})
+	if want, ok := sent["description"].(string); ok {
+		if have, _ := got["description"].(string); !EquivalentText(want, have) {
+			tflog.Debug(ctx, "PUT did not apply description, falling back to JSON Patch", map[string]interface{}{"collection": collection, "id": id})
+			patch := []map[string]interface{}{{"op": "add", "path": "/description", "value": want}}
+			if raw, err = c.Patch(ctx, collection, id, patch); err != nil {
+				return nil, fmt.Errorf("applying description: %w", err)
+			}
 		}
 	}
-	if len(ops) == 0 {
-		return raw, nil
+	if want, ok := sent["displayName"].(string); ok {
+		var cur map[string]interface{}
+		if json.Unmarshal(raw, &cur) == nil {
+			if have, _ := cur["displayName"].(string); have != want {
+				return nil, fmt.Errorf("OpenMetadata ignored the display_name change (wanted %q, stored %q): "+
+					"bot tokens cannot edit display names, use a token of a regular admin user", want, have)
+			}
+		}
 	}
-	tflog.Debug(ctx, "PUT did not apply description/displayName, falling back to JSON Patch", map[string]interface{}{"collection": collection, "id": id})
-	return c.Patch(ctx, collection, id, ops)
+	return raw, nil
 }
 
 // Patch applies an RFC 6902 JSON Patch to an entity identified by UUID and

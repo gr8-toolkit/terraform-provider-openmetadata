@@ -5,6 +5,7 @@ package provider_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -99,4 +100,60 @@ resource "openmetadata_role" "test" {
   policies = ["OrganizationPolicy"]
 }
 `, providerBlock, name, description)
+}
+
+// TestAccRoleResourceSanitizedDescription covers descriptions that OM rewrites
+// while storing them (unknown HTML tags are dropped, `&` is escaped): state must
+// keep the configured text instead of failing with "inconsistent result after apply".
+func TestAccRoleResourceSanitizedDescription(t *testing.T) {
+	name := testRandName("rolsan")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleConfig(name, testSanitizedDescription),
+				Check:  resource.TestCheckResourceAttr("openmetadata_role.test", "description", testSanitizedDescription),
+			},
+			{
+				Config: testAccRoleConfig(name, testSanitizedDescriptionUpdated),
+				Check:  resource.TestCheckResourceAttr("openmetadata_role.test", "description", testSanitizedDescriptionUpdated),
+			},
+		},
+	})
+}
+
+// TestAccRoleResourceBotTokenDisplayName: bots cannot edit display names (OM
+// ignores it on PUT and denies it on PATCH), which must surface as a clear
+// error rather than an inconsistent result.
+func TestAccRoleResourceBotTokenDisplayName(t *testing.T) {
+	name := testRandName("rldn")
+	botProvider := testBotProviderBlock(t)
+	config := func(displayName string) string {
+		return fmt.Sprintf(`
+%s
+
+resource "openmetadata_role" "test" {
+  name         = %q
+  display_name = %q
+  policies     = ["OrganizationPolicy"]
+}
+`, botProvider, name, displayName)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: config("First"),
+				Check:  resource.TestCheckResourceAttr("openmetadata_role.test", "display_name", "First"),
+			},
+			{
+				Config:      config("Second"),
+				ExpectError: regexp.MustCompile(`bot tokens cannot edit\s+display\s+names`),
+			},
+		},
+	})
 }

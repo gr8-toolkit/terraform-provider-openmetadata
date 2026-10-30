@@ -310,7 +310,7 @@ func (r *TeamResource) readIntoState(ctx context.Context, raw []byte, state *Tea
 	state.ID = StringVal(data, "id")
 	state.Name = StringVal(data, "name")
 	state.DisplayName = StringVal(data, "displayName")
-	state.Description = StringVal(data, "description")
+	state.Description = DescriptionVal(data, state.Description)
 	state.TeamType = StringVal(data, "teamType")
 	state.Email = StringVal(data, "email")
 	state.IsJoinable = BoolVal(data, "isJoinable")

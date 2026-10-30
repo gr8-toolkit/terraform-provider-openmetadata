@@ -538,7 +538,7 @@ func (r *DataAssetResource) readIntoState(ctx context.Context, raw []byte, state
 	state.ID = StringVal(data, "id")
 	state.Name = StringVal(data, "name")
 	state.DisplayName = StringVal(data, "displayName")
-	state.Description = StringVal(data, "description")
+	state.Description = DescriptionVal(data, state.Description)
 
 	priorOwners := extractOwnerRefs(ctx, state.Owners)
 	state.Owners = OwnerRefsToList(orderedRefs(priorOwners, ParseEntityRefs(data, "owners")))

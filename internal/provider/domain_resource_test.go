@@ -138,3 +138,25 @@ func TestAccDomainResourceNoDrift(t *testing.T) {
 		},
 	})
 }
+
+// TestAccDomainResourceSanitizedDescription covers descriptions that OM rewrites
+// while storing them (unknown HTML tags are dropped, `&` is escaped): state must
+// keep the configured text instead of failing with "inconsistent result after apply".
+func TestAccDomainResourceSanitizedDescription(t *testing.T) {
+	name := testRandName("domsan")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDomainConfig(name, testSanitizedDescription, "Aggregate"),
+				Check:  resource.TestCheckResourceAttr("openmetadata_domain.test", "description", testSanitizedDescription),
+			},
+			{
+				Config: testAccDomainConfig(name, testSanitizedDescriptionUpdated, "Aggregate"),
+				Check:  resource.TestCheckResourceAttr("openmetadata_domain.test", "description", testSanitizedDescriptionUpdated),
+			},
+		},
+	})
+}

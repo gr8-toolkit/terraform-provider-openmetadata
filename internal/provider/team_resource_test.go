@@ -322,3 +322,25 @@ resource "openmetadata_team" "child" {
 }
 `, testProviderBlock(), parentAName, parentBName, childName, activeParentRef)
 }
+
+// TestAccTeamResourceSanitizedDescription covers descriptions that OM rewrites
+// while storing them (unknown HTML tags are dropped, `&` is escaped): state must
+// keep the configured text instead of failing with "inconsistent result after apply".
+func TestAccTeamResourceSanitizedDescription(t *testing.T) {
+	name := testRandName("teasan")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccTeamConfig(name, testSanitizedDescription, "Group"),
+				Check:  resource.TestCheckResourceAttr("openmetadata_team.test", "description", testSanitizedDescription),
+			},
+			{
+				Config: testAccTeamConfig(name, testSanitizedDescriptionUpdated, "Group"),
+				Check:  resource.TestCheckResourceAttr("openmetadata_team.test", "description", testSanitizedDescriptionUpdated),
+			},
+		},
+	})
+}

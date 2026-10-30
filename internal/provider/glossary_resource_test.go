@@ -65,3 +65,25 @@ resource "openmetadata_glossary" "test" {
 }
 `, testProviderBlock(), name, description, mutuallyExclusive)
 }
+
+// TestAccGlossaryResourceSanitizedDescription covers descriptions that OM rewrites
+// while storing them (unknown HTML tags are dropped, `&` is escaped): state must
+// keep the configured text instead of failing with "inconsistent result after apply".
+func TestAccGlossaryResourceSanitizedDescription(t *testing.T) {
+	name := testRandName("glosan")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGlossaryConfig(name, testSanitizedDescription, false),
+				Check:  resource.TestCheckResourceAttr("openmetadata_glossary.test", "description", testSanitizedDescription),
+			},
+			{
+				Config: testAccGlossaryConfig(name, testSanitizedDescriptionUpdated, false),
+				Check:  resource.TestCheckResourceAttr("openmetadata_glossary.test", "description", testSanitizedDescriptionUpdated),
+			},
+		},
+	})
+}
