@@ -62,7 +62,33 @@ func TestAccRoleResource(t *testing.T) {
 	})
 }
 
+// TestAccRoleResourceBotToken updates the description with the ingestion-bot
+// token. OM ignores description changes made by bots through PUT and returns
+// the old value, which used to fail with "inconsistent result after apply".
+func TestAccRoleResourceBotToken(t *testing.T) {
+	name := testRandName("rlbot")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRoleConfigWithProvider(testBotProviderBlock(t), name, "Initial role description"),
+				Check:  resource.TestCheckResourceAttr("openmetadata_role.test", "description", "Initial role description"),
+			},
+			{
+				Config: testAccRoleConfigWithProvider(testBotProviderBlock(t), name, "Updated role description"),
+				Check:  resource.TestCheckResourceAttr("openmetadata_role.test", "description", "Updated role description"),
+			},
+		},
+	})
+}
+
 func testAccRoleConfig(name, description string) string {
+	return testAccRoleConfigWithProvider(testProviderBlock(), name, description)
+}
+
+func testAccRoleConfigWithProvider(providerBlock, name, description string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -72,5 +98,5 @@ resource "openmetadata_role" "test" {
   # OrganizationPolicy is seeded in every fresh OpenMetadata installation.
   policies = ["OrganizationPolicy"]
 }
-`, testProviderBlock(), name, description)
+`, providerBlock, name, description)
 }

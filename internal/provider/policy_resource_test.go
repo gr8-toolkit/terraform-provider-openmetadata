@@ -62,7 +62,33 @@ func TestAccPolicyResource(t *testing.T) {
 	})
 }
 
+// TestAccPolicyResourceBotToken updates the description with the ingestion-bot
+// token. OM ignores description changes made by bots through PUT and returns
+// the old value, which used to fail with "inconsistent result after apply".
+func TestAccPolicyResourceBotToken(t *testing.T) {
+	name := testRandName("polbot")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPolicyConfigWithProvider(testBotProviderBlock(t), name, "Initial policy description"),
+				Check:  resource.TestCheckResourceAttr("openmetadata_policy.test", "description", "Initial policy description"),
+			},
+			{
+				Config: testAccPolicyConfigWithProvider(testBotProviderBlock(t), name, "Updated policy description"),
+				Check:  resource.TestCheckResourceAttr("openmetadata_policy.test", "description", "Updated policy description"),
+			},
+		},
+	})
+}
+
 func testAccPolicyConfig(name, description string) string {
+	return testAccPolicyConfigWithProvider(testProviderBlock(), name, description)
+}
+
+func testAccPolicyConfigWithProvider(providerBlock, name, description string) string {
 	// The OpenMetadata API requires at least one rule. The provider stores rules
 	// as a JSON string and parses it before sending to the API.
 	rules := `[{"name":"allow-view","effect":"allow","operations":["ViewAll"],"resources":["All"]}]`
@@ -74,5 +100,5 @@ resource "openmetadata_policy" "test" {
   description = %q
   rules       = %q
 }
-`, testProviderBlock(), name, description, rules)
+`, providerBlock, name, description, rules)
 }
