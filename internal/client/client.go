@@ -109,13 +109,52 @@ func (c *Client) doRequestWithContentType(ctx context.Context, method, path, con
 	return respBody, resp.StatusCode, nil
 }
 
+// botProtectedFields maps request body keys to JSON Patch paths for fields that
+// OM refuses to overwrite on PUT when the caller is a bot and the stored value is
+// non-empty. PUT then silently returns the old value, so they are re-applied with
+// a PATCH, which is not subject to that rule.
+var botProtectedFields = []string{"description", "displayName"}
+
 // CreateOrUpdate performs an idempotent PUT (OM's create_or_update pattern).
+//
+// If the response does not echo back a description or displayName that was sent
+// (OM ignores those changes on PUT for bot tokens), the values are applied with a
+// JSON Patch and the patched entity is returned.
 func (c *Client) CreateOrUpdate(ctx context.Context, collection string, body interface{}) (json.RawMessage, error) {
 	respBody, _, err := c.doRequest(ctx, http.MethodPut, collection, body)
 	if err != nil {
 		return nil, err
 	}
-	return json.RawMessage(respBody), nil
+	raw := json.RawMessage(respBody)
+
+	sent, ok := body.(map[string]interface{})
+	if !ok {
+		return raw, nil
+	}
+	var got map[string]interface{}
+	if json.Unmarshal(raw, &got) != nil {
+		return raw, nil
+	}
+	id, _ := got["id"].(string)
+	if id == "" {
+		return raw, nil
+	}
+
+	var ops []map[string]interface{}
+	for _, field := range botProtectedFields {
+		want, ok := sent[field].(string)
+		if !ok {
+			continue
+		}
+		if have, _ := got[field].(string); have != want {
+			ops = append(ops, map[string]interface{}{"op": "add", "path": "/" + field, "value": want})
+		}
+	}
+	if len(ops) == 0 {
+		return raw, nil
+	}
+	tflog.Debug(ctx, "PUT did not apply description/displayName, falling back to JSON Patch", map[string]interface{}{"collection": collection, "id": id})
+	return c.Patch(ctx, collection, id, ops)
 }
 
 // Patch applies an RFC 6902 JSON Patch to an entity identified by UUID and

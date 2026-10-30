@@ -21,6 +21,8 @@
 package provider_test
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"os"
@@ -29,6 +31,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
+	"github.com/gr8-toolkit/terraform-provider-openmetadata/internal/client"
 	"github.com/gr8-toolkit/terraform-provider-openmetadata/internal/provider"
 )
 
@@ -62,4 +65,54 @@ func testProviderBlock() string {
 	return `
 provider "openmetadata" {}
 `
+}
+
+// testBotProviderBlock returns a provider block that authenticates with the
+// ingestion-bot JWT instead of OPENMETADATA_TOKEN. OM does not let bots change
+// an existing description or displayName through PUT, so resources must cope
+// with that to work for bot tokens. The bot token is fetched with the admin
+// token from the environment.
+func testBotProviderBlock(t *testing.T) string {
+	t.Helper()
+	// Runs while the TestCase is being built, i.e. before resource.Test applies
+	// its own TF_ACC gate, so it must skip on its own.
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("Acceptance tests skipped unless env 'TF_ACC' set")
+	}
+	testAccPreCheck(t)
+	ctx := context.Background()
+	c := client.NewClient(os.Getenv("OPENMETADATA_HOST"), os.Getenv("OPENMETADATA_TOKEN"))
+
+	rawBot, err := c.GetByName(ctx, "bots", "ingestion-bot", nil)
+	if err != nil || rawBot == nil {
+		t.Fatalf("fetching ingestion-bot: %v", err)
+	}
+	var bot struct {
+		BotUser struct {
+			ID string `json:"id"`
+		} `json:"botUser"`
+	}
+	if err := json.Unmarshal(rawBot, &bot); err != nil || bot.BotUser.ID == "" {
+		t.Fatalf("ingestion-bot has no botUser: %v (%s)", err, rawBot)
+	}
+
+	rawAuth, err := c.GetByID(ctx, "users/auth-mechanism", bot.BotUser.ID, nil)
+	if err != nil || rawAuth == nil {
+		t.Fatalf("fetching ingestion-bot auth mechanism: %v", err)
+	}
+	var auth struct {
+		Config struct {
+			JWTToken string `json:"JWTToken"`
+		} `json:"config"`
+	}
+	if err := json.Unmarshal(rawAuth, &auth); err != nil || auth.Config.JWTToken == "" {
+		t.Fatalf("ingestion-bot has no JWT token: %v", err)
+	}
+
+	return fmt.Sprintf(`
+provider "openmetadata" {
+  host  = %q
+  token = %q
+}
+`, os.Getenv("OPENMETADATA_HOST"), auth.Config.JWTToken)
 }
